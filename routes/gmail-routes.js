@@ -18,7 +18,8 @@ const oAuth2Client = new google.auth.OAuth2(
 const SCOPES = [
   'https://www.googleapis.com/auth/gmail.send',
   'https://www.googleapis.com/auth/userinfo.email',
-  'https://www.googleapis.com/auth/gmail.readonly'
+  'https://www.googleapis.com/auth/gmail.readonly',
+  'https://www.googleapis.com/auth/gmail.settings.basic'
 ];
 
 // Generate OAuth2 URL for Gmail authorization
