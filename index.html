@@ -237,7 +237,8 @@
                         Settings
                     </a>
                 </nav>
-            </div>
+            </div> 
+
 
             <!-- Content Area -->
             <div class="flex-1 overflow-auto p-6 bg-gray-50">
@@ -1672,5 +1673,120 @@
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
     <!-- Custom JavaScript -->
     <script src="index.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Get sidebar elements
+        const sidebar = document.getElementById('sidebar');
+        const sidebarContainer = document.getElementById('sidebar-container');
+        const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+        const sidebarCollapseBtn = document.getElementById('sidebar-collapse-btn');
+        const sidebarCollapseIcon = document.getElementById('sidebar-collapse-icon');
+        const mobileSidebarToggle = document.getElementById('mobile-sidebar-toggle');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const navTexts = document.querySelectorAll('.nav-text');
+        
+        // Set initial sidebar width
+        let sidebarCollapsed = false;
+        sidebar.style.width = '240px';
+        
+        // Function to toggle sidebar collapse state
+        function toggleCollapse() {
+            sidebarCollapsed = !sidebarCollapsed;
+            
+            if (sidebarCollapsed) {
+                sidebar.style.width = '64px';
+                sidebarCollapseIcon.classList.remove('fa-chevron-left');
+                sidebarCollapseIcon.classList.add('fa-chevron-right');
+                navTexts.forEach(text => {
+                    text.classList.add('hidden');
+                });
+            } else {
+                sidebar.style.width = '240px';
+                sidebarCollapseIcon.classList.remove('fa-chevron-right');
+                sidebarCollapseIcon.classList.add('fa-chevron-left');
+                navTexts.forEach(text => {
+                    text.classList.remove('hidden');
+                });
+            }
+        }
+        
+        // Function to toggle mobile sidebar
+        function toggleMobileSidebar() {
+            const isMobileOpen = !sidebar.classList.contains('-translate-x-full');
+            
+            if (isMobileOpen) {
+                // Close sidebar
+                sidebar.classList.add('-translate-x-full');
+                sidebarBackdrop.classList.add('hidden');
+            } else {
+                // Open sidebar
+                sidebar.classList.remove('-translate-x-full');
+                sidebarBackdrop.classList.remove('hidden');
+                
+                // Ensure sidebar is expanded in mobile view
+                if (sidebarCollapsed) {
+                    toggleCollapse();
+                }
+            }
+        }
+        
+        // Add click event listeners
+        sidebarCollapseBtn.addEventListener('click', toggleCollapse);
+        mobileSidebarToggle.addEventListener('click', toggleMobileSidebar);
+        sidebarBackdrop.addEventListener('click', toggleMobileSidebar);
+        
+        // Close mobile sidebar when clicking a nav link
+        navLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth < 768) { // md breakpoint is 768px
+                    toggleMobileSidebar();
+                }
+                
+                // Handle active state for navigation
+                navLinks.forEach(l => {
+                    l.classList.remove('bg-indigo-100', 'text-indigo-700');
+                    l.classList.add('text-gray-700', 'hover:bg-gray-50', 'hover:text-indigo-600');
+                    
+                    // Reset icon colors
+                    const icon = l.querySelector('i');
+                    if (icon && !icon.classList.contains('fa-sign-out-alt')) { // Don't change logout icon
+                        icon.classList.remove('text-indigo-500');
+                        icon.classList.add('text-gray-400', 'group-hover:text-indigo-500');
+                    }
+                });
+                
+                // Add active class to clicked link
+                if (!this.id.includes('logout')) { // Don't highlight logout button
+                    this.classList.remove('text-gray-700', 'hover:bg-gray-50', 'hover:text-indigo-600');
+                    this.classList.add('bg-indigo-100', 'text-indigo-700');
+                    
+                    // Set icon color for active link
+                    const activeIcon = this.querySelector('i');
+                    if (activeIcon) {
+                        activeIcon.classList.remove('text-gray-400', 'group-hover:text-indigo-500');
+                        activeIcon.classList.add('text-indigo-500');
+                    }
+                }
+            });
+        });
+        
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (window.innerWidth >= 768) { // md breakpoint
+                // Ensure backdrop is hidden on larger screens
+                sidebarBackdrop.classList.add('hidden');
+                
+                // Ensure sidebar is visible on larger screens
+                sidebar.classList.remove('-translate-x-full');
+            } else {
+                // Hide sidebar on small screens by default
+                sidebar.classList.add('-translate-x-full');
+            }
+        });
+        
+        // Make toggleMobileSidebar accessible globally
+        window.toggleSidebar = toggleMobileSidebar;
+    });
+    </script>
 </body>
 </html>

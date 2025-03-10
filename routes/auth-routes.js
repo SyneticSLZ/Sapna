@@ -129,8 +129,16 @@ router.get('/verify/:token', async (req, res) => {
     user.verificationToken = undefined;
     await user.save();
     
-    // Redirect to frontend with success message
-    res.redirect(`${process.env.FRONTEND_URL}/login?verified=true`);
+    // Display success message instead of redirect
+    res.send(`
+      <html>
+        <body style="font-family: Arial, sans-serif; text-align: center; padding-top: 50px;">
+          <h1>Email Verified Successfully</h1>
+          <p>Your email has been verified. You can now close this window.</p>
+          <p><a href="${process.env.FRONTEND_URL}">Return to homepage</a></p>
+        </body>
+      </html>
+    `);
   } catch (error) {
     console.error('Verification error:', error);
     res.status(500).send(`
@@ -300,21 +308,31 @@ async function sendVerificationEmail(email, token) {
   }
   
   const verificationUrl = `${process.env.BASE_URL}/api/auth/verify/${token}`;
-  
   const mailOptions = {
-    from: `"Email Campaign App" <${process.env.MAIL_FROM || 'verification@example.com'}>`,
+    from: `"SyneticX" <${process.env.MAIL_FROM || 'verification@syneticx.com'}>`,
     to: email,
-    subject: 'Verify Your Email',
+    subject: 'Verify Your Email with SyneticX',
     html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2>Verify Your Email Address</h2>
-        <p>Thank you for registering! Please click the button below to verify your email address:</p>
-        <div style="text-align: center; margin: 30px 0;">
-          <a href="${verificationUrl}" style="background-color: #4285F4; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold;">Verify Email</a>
+      <div style="font-family: 'Arial', sans-serif; max-width: 600px; margin: 0 auto; background-color: #1a1a1a; color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+        <div style="text-align: center; padding: 20px 0; background-color: #000000;">
+          <h1 style="color: #9370DB; font-size: 32px; margin: 0; font-weight: bold; text-transform: uppercase; letter-spacing: 2px;">
+            SyneticX
+          </h1>
         </div>
-        <p>Or copy and paste this link in your browser:</p>
-        <p>${verificationUrl}</p>
-        <p>If you did not sign up for an account, you can ignore this email.</p>
+        <div style="padding: 20px;">
+          <h2 style="color: #ADD8E6; font-size: 24px; border-bottom: 2px solid #9370DB; padding-bottom: 10px;">Verify Your Email Address</h2>
+          <p style="font-size: 16px; line-height: 1.6; color: #d3d3d3;">Thank you for choosing SyneticX! To activate your account and unlock the full experience, please verify your email address by clicking the button below:</p>
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${verificationUrl}" style="background: linear-gradient(90deg, #9370DB, #4682B4); color: #ffffff; padding: 12px 25px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block; transition: opacity 0.3s;">Verify Your Email</a>
+          </div>
+          <p style="font-size: 14px; color: #d3d3d3;">Alternatively, copy and paste the following link into your browser:</p>
+          <p style="font-size: 14px; color: #ADD8E6; word-break: break-all;">${verificationUrl}</p>
+          <p style="font-size: 14px; color: #d3d3d3;">If you did not sign up for a SyneticX account, please disregard this email or contact our support team at <a href="mailto:support@syneticx.com" style="color: #ADD8E6; text-decoration: none;">support@syneticx.com</a>.</p>
+        </div>
+        <div style="text-align: center; padding: 15px; background-color: #000000; color: #d3d3d3; font-size: 12px; border-top: 1px solid #9370DB;">
+          <p>&copy; 2025 SyneticX. All rights reserved.</p>
+          <p><a href="${process.env.FRONTEND_URL}/terms" style="color: #ADD8E6; text-decoration: none; margin: 0 10px;">Terms of Service</a> | <a href="${process.env.FRONTEND_URL}/privacy" style="color: #ADD8E6; text-decoration: none;">Privacy Policy</a></p>
+        </div>
       </div>
     `
   };
