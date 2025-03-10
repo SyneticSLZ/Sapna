@@ -20,6 +20,16 @@ router.get('/track-open', async (req, res) => {
         });
         
         if (lead) {
+
+          const existingOpen = await AnalyticsEvent.findOne({
+            eventType: 'Open',
+            emailId: eid,
+            leadId: lead._id,
+            timestamp: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+          });
+          if (existingOpen) {
+            return 
+          }
           // Record the open
           lead.opens.push({ date: new Date() });
           lead.lastActivity = new Date();
