@@ -61,6 +61,7 @@ const emailQueueSchema = new mongoose.Schema({
   subject: { type: String, required: true },
   body: { type: String, required: true },
   threadId: { type: String, default: null },
+  messageId: { type: String, default: null },
   scheduledFor: { type: Date, required: true, index: true },
   status: { 
     type: String, 

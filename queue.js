@@ -131,13 +131,13 @@ async function processEmailQueue() {
         let trackingBody = email.body;
         if (campaign.settings.trackOpens) {
           const trackingId = crypto.randomBytes(16).toString('hex');
-          const trackingPixel = `<img src="${process.env.BASE_URL}/track-open?cid=${campaign._id}&eid=${email._id}&tid=${trackingId}" width="1" height="1" alt="" style="display:none">`;
-          trackingBody = trackingBody + trackingPixel;
+          const timestamp = Date.now();
+          const trackingPixel = `<img src="${process.env.BASE_URL}/track-open?cid=${campaign._id}&eid=${email._id}&tid=${trackingId}&ts=${timestamp}" width="1" height="1" alt="" style="display:none">`;
+          const preloadTag = `<link rel="preload" href="${process.env.BASE_URL}/track-open?cid=${campaign._id}&eid=${email._id}&tid=${trackingId}&ts=${timestamp}" as="image">`;
+          trackingBody = `${preloadTag}${trackingBody}${trackingPixel}`;
         }
-        
-        // Replace tracking links if enabled
+
         if (campaign.settings.trackClicks) {
-          // Simple regex to find links - in production use a more robust HTML parser
           trackingBody = trackingBody.replace(
             /<a\s+(?:[^>]*?\s+)?href="([^"]*)"([^>]*)>(.*?)<\/a>/gi,
             (match, url, attrs, text) => {
@@ -188,6 +188,7 @@ async function processEmailQueue() {
         email.status = 'Sent';
         email.sentAt = new Date();
         email.threadId = threadId;
+        email.messageId = response.data.id;
         await email.save();
         
         // Update campaign stats
