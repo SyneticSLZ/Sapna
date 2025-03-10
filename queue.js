@@ -154,9 +154,7 @@ async function processEmailQueue() {
           'Content-Type: text/html; charset=utf-8',
           `Subject: ${email.subject}`,
           '',
-          emailBodyWithSignature,
-          '',
-          trackingBody
+          emailBodyWithSignature
         ];
         // Create email content
         // const emailLines = [
