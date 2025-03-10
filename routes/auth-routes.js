@@ -135,7 +135,7 @@ router.get('/verify/:token', async (req, res) => {
         <body style="font-family: Arial, sans-serif; text-align: center; padding-top: 50px;">
           <h1>Email Verified Successfully</h1>
           <p>Your email has been verified. You can now close this window.</p>
-          <p><a href="${process.env.FRONTEND_URL}">Return to homepage</a></p>
+          <p><a href="https://voltmailer.com/Drip.html">Return to homepage</a></p>
         </body>
       </html>
     `);
@@ -146,7 +146,7 @@ router.get('/verify/:token', async (req, res) => {
         <body style="font-family: Arial, sans-serif; text-align: center; padding-top: 50px;">
           <h1>Verification Failed</h1>
           <p>There was an error verifying your email. Please try again later.</p>
-          <p><a href="${process.env.FRONTEND_URL}">Return to homepage</a></p>
+          <p><a href="https://voltmailer.com/Drip.html">Return to homepage</a></p>
         </body>
       </html>
     `);
@@ -311,27 +311,33 @@ async function sendVerificationEmail(email, token) {
   const mailOptions = {
     from: `"SyneticX" <${process.env.MAIL_FROM || 'verification@syneticx.com'}>`,
     to: email,
-    subject: 'Verify Your Email with SyneticX',
+    subject: 'SyneticX Email Verification',
+    text: `Hi,\n\nThank you for choosing SyneticX! Please verify your email address by clicking the link below:\n\n${verificationUrl}\n\nIf you did not sign up for a SyneticX account, you can ignore this email or contact us at support@syneticx.com.\n\nBest regards,\nThe SyneticX Team\n\n© 2025 SyneticX. All rights reserved.\nIf you’d prefer not to receive these emails, you can unsubscribe here: ${process.env.FRONTEND_URL}/unsubscribe?email=${encodeURIComponent(email)}`,
     html: `
-      <div style="font-family: 'Arial', sans-serif; max-width: 600px; margin: 0 auto; background-color: #1a1a1a; color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
-        <div style="text-align: center; padding: 20px 0; background-color: #000000;">
-          <h1 style="color: #9370DB; font-size: 32px; margin: 0; font-weight: bold; text-transform: uppercase; letter-spacing: 2px;">
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #1a1a1a; color: #ffffff; padding: 20px; border-radius: 8px;">
+        <div style="text-align: center; padding: 15px 0; background-color: #000000;">
+          <h1 style="color: #9370DB; font-size: 28px; margin: 0; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">
             SyneticX
           </h1>
         </div>
         <div style="padding: 20px;">
-          <h2 style="color: #ADD8E6; font-size: 24px; border-bottom: 2px solid #9370DB; padding-bottom: 10px;">Verify Your Email Address</h2>
-          <p style="font-size: 16px; line-height: 1.6; color: #d3d3d3;">Thank you for choosing SyneticX! To activate your account and unlock the full experience, please verify your email address by clicking the button below:</p>
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${verificationUrl}" style="background: linear-gradient(90deg, #9370DB, #4682B4); color: #ffffff; padding: 12px 25px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block; transition: opacity 0.3s;">Verify Your Email</a>
+          <h2 style="color: #ADD8E6; font-size: 20px; margin-bottom: 15px;">Verify Your Email Address</h2>
+          <p style="font-size: 16px; line-height: 1.5; color: #d3d3d3;">Hi${user?.firstName ? ` ${user.firstName}` : ''},</p>
+          <p style="font-size: 16px; line-height: 1.5; color: #d3d3d3;">Thank you for choosing SyneticX! To activate your account, please verify your email address by clicking the button below:</p>
+          <div style="text-align: center; margin: 25px 0;">
+            <a href="${verificationUrl}" style="background-color: #9370DB; color: #ffffff; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 16px; display: inline-block;">Verify Email</a>
           </div>
-          <p style="font-size: 14px; color: #d3d3d3;">Alternatively, copy and paste the following link into your browser:</p>
+          <p style="font-size: 14px; color: #d3d3d3;">Or copy and paste this link into your browser:</p>
           <p style="font-size: 14px; color: #ADD8E6; word-break: break-all;">${verificationUrl}</p>
-          <p style="font-size: 14px; color: #d3d3d3;">If you did not sign up for a SyneticX account, please disregard this email or contact our support team at <a href="mailto:support@syneticx.com" style="color: #ADD8E6; text-decoration: none;">support@syneticx.com</a>.</p>
+          <p style="font-size: 14px; color: #d3d3d3;">If you did not sign up for a SyneticX account, you can ignore this email or contact our support team at <a href="mailto:support@syneticx.com" style="color: #ADD8E6; text-decoration: none;">support@syneticx.com</a>.</p>
         </div>
-        <div style="text-align: center; padding: 15px; background-color: #000000; color: #d3d3d3; font-size: 12px; border-top: 1px solid #9370DB;">
-          <p>&copy; 2025 SyneticX. All rights reserved.</p>
-          <p><a href="${process.env.FRONTEND_URL}/terms" style="color: #ADD8E6; text-decoration: none; margin: 0 10px;">Terms of Service</a> | <a href="${process.env.FRONTEND_URL}/privacy" style="color: #ADD8E6; text-decoration: none;">Privacy Policy</a></p>
+        <div style="text-align: center; padding: 10px; background-color: #000000; color: #d3d3d3; font-size: 12px; border-top: 1px solid #9370DB;">
+          <p>© 2025 SyneticX. All rights reserved.</p>
+          <p>
+            <a href="${process.env.FRONTEND_URL}/terms" style="color: #ADD8E6; text-decoration: none; margin: 0 5px;">Terms</a> | 
+            <a href="${process.env.FRONTEND_URL}/privacy" style="color: #ADD8E6; text-decoration: none; margin: 0 5px;">Privacy</a> | 
+            <a href="${process.env.FRONTEND_URL}/unsubscribe?email=${encodeURIComponent(email)}" style="color: #ADD8E6; text-decoration: none; margin: 0 5px;">Unsubscribe</a>
+          </p>
         </div>
       </div>
     `
