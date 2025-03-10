@@ -23,6 +23,20 @@ const oAuth2Client = new google.auth.OAuth2(
   process.env.GMAIL_REDIRECT_URI
 );
 
+async function getUserSignature(gmail, mailboxId) {
+  try {
+    const response = await gmail.users.settings.sendAs.get({
+      userId: 'me',
+      sendAsEmail: mailboxId
+    });
+    
+    return response.data.signature || '';
+  } catch (error) {
+    console.error('Error fetching signature:', error);
+    return '';
+  }
+}
+
 async function checkForReplies(email) {
   if (!email.threadId) return false;
 
@@ -112,7 +126,7 @@ async function processEmailQueue() {
         
         // Initialize Gmail API
         const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
-        
+        const signature = await getUserSignature(gmail, campaign.mailboxId);
         // Add tracking pixels if enabled
         let trackingBody = email.body;
         if (campaign.settings.trackOpens) {
@@ -133,15 +147,25 @@ async function processEmailQueue() {
             }
           );
         }
+        const emailBodyWithSignature = `${trackingBody}<br><br>${signature}`;
         
-        // Create email content
         const emailLines = [
           `To: ${email.to}`,
           'Content-Type: text/html; charset=utf-8',
           `Subject: ${email.subject}`,
           '',
+          emailBodyWithSignature,
+          '',
           trackingBody
         ];
+        // Create email content
+        // const emailLines = [
+        //   `To: ${email.to}`,
+        //   'Content-Type: text/html; charset=utf-8',
+        //   `Subject: ${email.subject}`,
+        //   '',
+        //   trackingBody
+        // ];
         
         const emailContent = emailLines.join('\r\n');
         
