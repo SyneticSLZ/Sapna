@@ -224,6 +224,82 @@ async function processEmailQueue() {
   }
 }
 
+// async function scheduleFollowUps() {
+//   try {
+//     const activeCampaigns = await Campaign.find({ status: 'Active' });
+    
+//     for (const campaign of activeCampaigns) {
+//       const leads = await Lead.find({ campaignId: campaign._id, status: 'Active' });
+//       const sentEmails = await EmailQueue.find({ campaignId: campaign._id, status: 'Sent' });
+      
+//       const emailsByRecipient = sentEmails.reduce((acc, email) => {
+//         if (!acc[email.to]) acc[email.to] = [];
+//         acc[email.to].push(email);
+//         return acc;
+//       }, {});
+      
+//       for (const lead of leads) {
+//         if (campaign.settings.stopOnReply && lead.replies.length > 0) continue;
+//         if (campaign.settings.stopOnClick && lead.clicks.length > 0) continue;
+        
+//         const leadEmails = emailsByRecipient[lead.email] || [];
+//         const lastEmail = leadEmails.sort((a, b) => b.sentAt.getTime() - a.sentAt.getTime())[0];
+        
+//         if (!lastEmail) continue;
+
+//         if (campaign.settings.stopOnReply && await checkForReplies(lastEmail)) {
+//           lead.replies.push({ date: new Date(), emailId: lastEmail._id });
+//           await lead.save();
+//           continue;
+//         }
+        
+        
+//         const followUpIndex = lastEmail.type === 'Initial' ? 0 : (lastEmail.followUpIndex + 1);
+//         const followUp = campaign.followUpEmails[followUpIndex];
+        
+//         if (!followUp) continue;
+        
+//         const existingFollowUp = await EmailQueue.findOne({
+//           campaignId: campaign._id,
+//           to: lead.email,
+//           type: 'FollowUp',
+//           followUpIndex
+//         });
+        
+//         if (existingFollowUp) continue;
+        
+//         const delayMillis = {
+//           minutes: followUp.waitDuration * 60 * 1000,
+//           hours: followUp.waitDuration * 60 * 60 * 1000,
+//           days: followUp.waitDuration * 24 * 60 * 60 * 1000,
+//           weeks: followUp.waitDuration * 7 * 24 * 60 * 60 * 1000
+//         }[followUp.waitUnit.toLowerCase()] || (followUp.waitDuration * 24 * 60 * 60 * 1000);
+        
+//         const scheduledFor = new Date(lastEmail.sentAt.getTime() + delayMillis);
+        
+//         await EmailQueue.create({
+//           campaignId: campaign._id,
+//           to: lead.email,
+//           subject: followUp.subject,
+//           body: followUp.body,
+//           scheduledFor,
+//           status: 'Pending',
+//           type: 'FollowUp',
+//           followUpIndex,
+//           metadata: { leadId: lead._id, followUpNumber: followUpIndex + 1 }
+//         });
+        
+//         console.log(`Scheduled follow-up #${followUpIndex + 1} to ${lead.email} for ${scheduledFor}`);
+//       }
+//     }
+//   } catch (error) {
+//     console.error('Error scheduling follow-ups:', error);
+//   }
+// }
+
+// Start queue processing
+
+
 async function scheduleFollowUps() {
   try {
     const activeCampaigns = await Campaign.find({ status: 'Active' });
@@ -253,7 +329,6 @@ async function scheduleFollowUps() {
           continue;
         }
         
-        
         const followUpIndex = lastEmail.type === 'Initial' ? 0 : (lastEmail.followUpIndex + 1);
         const followUp = campaign.followUpEmails[followUpIndex];
         
@@ -277,11 +352,14 @@ async function scheduleFollowUps() {
         
         const scheduledFor = new Date(lastEmail.sentAt.getTime() + delayMillis);
         
+        // Ensure the follow-up body is properly formatted HTML
+        const emailBody = ensureHTMLFormatting(followUp.body, lead);
+        
         await EmailQueue.create({
           campaignId: campaign._id,
           to: lead.email,
           subject: followUp.subject,
-          body: followUp.body,
+          body: emailBody,
           scheduledFor,
           status: 'Pending',
           type: 'FollowUp',
@@ -297,7 +375,60 @@ async function scheduleFollowUps() {
   }
 }
 
-// Start queue processing
+/**
+ * Ensures the email body is properly formatted HTML and personalizes it for the lead
+ * @param {string} body - The email body content
+ * @param {Object} lead - The lead object with personalization data
+ * @returns {string} - Properly formatted HTML email body
+ */
+function ensureHTMLFormatting(body, lead) {
+  // First, make sure it's HTML formatted with proper paragraph tags
+  let formattedBody = createFormattedHTML(body);
+  
+  // Then, personalize the content for the lead
+  formattedBody = personalizeEmailContent(formattedBody, lead);
+  
+  return formattedBody;
+}
+
+/**
+ * Converts plain text to properly formatted HTML if needed
+ * @param {string} text - The text to format
+ * @returns {string} - HTML formatted text
+ */
+function createFormattedHTML(text) {
+  // Check if text is already HTML (contains HTML tags)
+  if (text.includes('<p>') || text.includes('<div>') || text.includes('<br>')) {
+    return text;
+  }
+  
+  // Otherwise, format plain text with proper HTML
+  return text.split('\n\n')
+    .map(paragraph => `<p>${paragraph.replace(/\n/g, '<br>')}</p>`)
+    .join('');
+}
+
+/**
+ * Personalizes email content by replacing placeholders with lead data
+ * @param {string} content - The email content with placeholders
+ * @param {Object} lead - The lead object with personalization data
+ * @returns {string} - Personalized email content
+ */
+function personalizeEmailContent(content, lead) {
+  // Replace placeholders with lead data
+  return content
+    .replace(/{first_name}/g, lead.firstName || '')
+    .replace(/{last_name}/g, lead.lastName || '')
+    .replace(/{email}/g, lead.email || '')
+    .replace(/{company}/g, lead.company || '')
+    .replace(/{title}/g, lead.title || '')
+    .replace(/{industry}/g, lead.industry || '')
+    .replace(/{city}/g, lead.city || '')
+    .replace(/{state}/g, lead.state || '')
+    .replace(/{website}/g, lead.website || '');
+}
+
+
 function startQueueProcessing() {
   setInterval(processEmailQueue, 60 * 1000);
   setInterval(scheduleFollowUps, 15 * 60 * 1000);
